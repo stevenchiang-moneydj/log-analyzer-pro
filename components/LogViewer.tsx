@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import type { JSX } from 'react';
 import { SpinnerIcon } from './icons';
@@ -44,6 +43,7 @@ interface LogViewerProps {
   isProcessingPermissions: boolean;
   indicatorStartEvents: IndicatorStartEvent[];
   isProcessingIndicators: boolean;
+  startTimestamps?: string[];
 }
 
 type ViewMode = 'content' | 'resourceChart' | 'systemInfo' | 'permissionsInfo' | 'xsIndicatorInfo';
@@ -83,7 +83,8 @@ const LogViewer: React.FC<LogViewerProps> = ({
   permissionSnapshots,
   isProcessingPermissions,
   indicatorStartEvents,
-  isProcessingIndicators
+  isProcessingIndicators,
+  startTimestamps = [],
 }) => {
   const viewerRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<number | null>(null);
@@ -504,13 +505,13 @@ const LogViewer: React.FC<LogViewerProps> = ({
               {memoryUsageData.length > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-200 mb-3">Memory Usage Over Time (DA Logs)</h3>
-                  <MemoryUsageChart data={memoryUsageData} isLoading={memoryChartIsLoading} />
+                  <MemoryUsageChart data={memoryUsageData} isLoading={memoryChartIsLoading} startTimestamps={startTimestamps} />
                 </div>
               )}
               {gdiUsageData.length > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-200 mb-3">GDI Usage Over Time (DA Logs)</h3>
-                  <GdiUsageChart data={gdiUsageData} isLoading={gdiChartIsLoading} />
+                  <GdiUsageChart data={gdiUsageData} isLoading={gdiChartIsLoading} startTimestamps={startTimestamps} />
                 </div>
               )}
             </>
@@ -518,7 +519,7 @@ const LogViewer: React.FC<LogViewerProps> = ({
           {hasCpuData && (
              <div>
                 <h3 className="text-lg font-semibold text-gray-200 mb-3">CPU Usage & DelayMS Over Time</h3>
-                <CpuUsageChart data={cpuUsageData} isLoading={cpuChartIsLoading} />
+                <CpuUsageChart data={cpuUsageData} isLoading={cpuChartIsLoading} startTimestamps={startTimestamps} />
               </div>
           )}
            {(isLoading && (!hasMemoryOrGdiData && !hasCpuData)) && (isAnalyzingMemory || isAnalyzingGdi || isAnalyzingCpu) && (

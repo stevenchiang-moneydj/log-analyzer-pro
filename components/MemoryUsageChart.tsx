@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MemoryUsageDataPoint } from '../types';
 import { SpinnerIcon } from './icons';
@@ -6,6 +5,7 @@ import { SpinnerIcon } from './icons';
 interface MemoryUsageChartProps {
   data: MemoryUsageDataPoint[];
   isLoading: boolean;
+  startTimestamps?: string[];
 }
 
 const timeToSeconds = (timeStr: string): number => {
@@ -17,7 +17,7 @@ const WARNING_THRESHOLD_MB = 2000;
 const WARNING_COLOR = "#ef4444"; // Red-500
 const NORMAL_COLOR = "#3b82f6"; // Blue-500
 
-const MemoryUsageChart: React.FC<MemoryUsageChartProps> = ({ data, isLoading }) => {
+const MemoryUsageChart: React.FC<MemoryUsageChartProps> = ({ data, isLoading, startTimestamps = [] }) => {
   const [tooltip, setTooltip] = useState<{
     visible: boolean;
     contentLines: string[];
@@ -49,7 +49,6 @@ const MemoryUsageChart: React.FC<MemoryUsageChartProps> = ({ data, isLoading }) 
   const timeValues = data.map(d => timeToSeconds(d.timestamp) - firstTimestampSeconds);
   const memoryValues = data.map(d => d.memoryMB);
 
-  const minTime = 0; 
   const maxTime = Math.max(...timeValues);
   const minMemory = Math.min(...memoryValues);
   const maxMemory = Math.max(...memoryValues);
@@ -136,7 +135,7 @@ const MemoryUsageChart: React.FC<MemoryUsageChartProps> = ({ data, isLoading }) 
   const tooltipWidth = 130;
   const tooltipHeight = 38;
 
-  const handleMouseOver = (event: React.MouseEvent<SVGCircleElement>, pointData: MemoryUsageDataPoint, pointX: number, pointY: number) => {
+  const handleMouseOver = (_event: React.MouseEvent<SVGCircleElement>, pointData: MemoryUsageDataPoint, pointX: number, pointY: number) => {
     let tx = pointX + 15; 
     let ty = pointY - tooltipHeight / 2; 
 
@@ -171,7 +170,20 @@ const MemoryUsageChart: React.FC<MemoryUsageChartProps> = ({ data, isLoading }) 
     <div className="bg-gray-800 p-4 rounded-lg shadow-inner overflow-x-auto">
       <svg width={svgWidth} height={svgHeight} viewBox={`0 0 ${svgWidth} ${svgHeight}`} aria-labelledby="chartDesc">
         <desc id="chartDesc">A line chart showing memory usage (MB) on the Y-axis and time on the X-axis. A red dashed line indicates the 2000MB warning threshold.</desc>
-        
+        {/* 啟動時間標示線 */}
+        {startTimestamps && startTimestamps.map((ts, idx) => {
+          const tsSec = timeToSeconds(ts) - firstTimestampSeconds;
+          const x = getX(tsSec);
+          return (
+            <g key={`start-line-${idx}`}> 
+              <line x1={x} y1={padding.top} x2={x} y2={padding.top + chartHeight} stroke="#f59e42" strokeWidth="2.5" strokeDasharray="6,2" />
+              <text x={x + 4} y={padding.top + 18} fontSize="12" fill="#f59e42" fontWeight="bold">
+                啟動
+              </text>
+            </g>
+          );
+        })}
+
         {/* Y Axis Grid Lines and Labels */}
         {yTicks.map((tick, i) => (
           <g key={`y-tick-${i}`} className="text-gray-500">

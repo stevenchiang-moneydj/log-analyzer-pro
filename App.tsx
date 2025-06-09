@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { 
   CategorizedLogs, 
@@ -395,6 +394,17 @@ const parseXSIndicatorSvcClientLog = (
 };
 
 
+const parseStartTimestamps = (lines: string[]): string[] => {
+  // 解析啟動時間，log 格式：GetUserDefaultUILanguage(1028) OK.
+  const regex = /(\d{2}:\d{2}:\d{2}\.\d{3}).*GetUserDefaultUILanguage\(1028\) OK\./i;
+  return lines
+    .map(line => {
+      const match = line.match(regex);
+      return match ? match[1] : null;
+    })
+    .filter((t): t is string => !!t);
+};
+
 const App: React.FC = () => {
   const [categorizedLogs, setCategorizedLogs] = useState<CategorizedLogs>({});
   const [selectedLogKey, setSelectedLogKey] = useState<SelectedLogIdentifier | null>(null);
@@ -425,6 +435,7 @@ const App: React.FC = () => {
   const [isProcessingPermissions, setIsProcessingPermissions] = useState<boolean>(false); 
   const [indicatorStartEvents, setIndicatorStartEvents] = useState<IndicatorStartEvent[]>([]);
   const [isProcessingIndicators, setIsProcessingIndicators] = useState<boolean>(false);
+  const [startTimestamps, setStartTimestamps] = useState<string[]>([]);
 
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -452,6 +463,7 @@ const App: React.FC = () => {
     setIsProcessingPermissions(false);
     setIndicatorStartEvents([]);
     setIsProcessingIndicators(false);
+    setStartTimestamps([]);
     // Note: selectedLogKey is handled separately where resetLogViewState is called
   }, []);
 
@@ -525,6 +537,7 @@ const App: React.FC = () => {
     setIsProcessingPermissions(false);
     setIndicatorStartEvents([]);
     setIsProcessingIndicators(false);
+    setStartTimestamps([]);
 
 
     try {
@@ -599,6 +612,9 @@ const App: React.FC = () => {
             setIsProcessingPermissions(false);
             completeAnalysisTask();
           }, 0);
+
+          // Parse and set start timestamps for DA logs
+          setStartTimestamps(parseStartTimestamps(lines));
         }
 
         if (moduleName === LOG_MODULE_XSINDICATORSVCCLIENT) {
@@ -829,6 +845,7 @@ const App: React.FC = () => {
           isProcessingPermissions={isProcessingPermissions}
           indicatorStartEvents={indicatorStartEvents}
           isProcessingIndicators={isProcessingIndicators}
+          startTimestamps={startTimestamps}
         />
       </main>
     </div>

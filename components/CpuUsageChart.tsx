@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { CpuUsageDataPoint } from '../types';
 import { SpinnerIcon } from './icons';
@@ -6,6 +5,7 @@ import { SpinnerIcon } from './icons';
 interface CpuUsageChartProps {
   data: CpuUsageDataPoint[];
   isLoading: boolean;
+  startTimestamps?: string[];
 }
 
 const timeToSeconds = (timeStr: string): number => {
@@ -19,7 +19,7 @@ const MAIN_CPU_COLOR = "#22c55e"; // Green-500
 const TOTAL_CPU_COLOR = "#f97316"; // Orange-500
 const DELAY_MS_COLOR = "#8b5cf6"; // Violet-500
 
-const CpuUsageChart: React.FC<CpuUsageChartProps> = ({ data, isLoading }) => {
+const CpuUsageChart: React.FC<CpuUsageChartProps> = ({ data, isLoading, startTimestamps = [] }) => {
   const [tooltip, setTooltip] = useState<{
     visible: boolean;
     contentLines: string[];
@@ -56,7 +56,6 @@ const CpuUsageChart: React.FC<CpuUsageChartProps> = ({ data, isLoading }) => {
   const totalCpuValues = data.map(d => d.totalCpuPercent);
   const delayMsValues = data.map(d => d.delayMs);
 
-  const minTime = 0; 
   const maxTime = Math.max(...timeValues);
 
   // CPU Y-axis (0-100%, but can go higher if data exceeds)
@@ -121,7 +120,7 @@ const CpuUsageChart: React.FC<CpuUsageChartProps> = ({ data, isLoading }) => {
   const tooltipWidth = 150; // Wider for more data
   const tooltipHeight = 60; // Taller for more lines
 
-  const handleMouseOver = (event: React.MouseEvent<SVGCircleElement>, pointData: CpuUsageDataPoint, pointX: number, pointY: number) => {
+  const handleMouseOver = (_event: React.MouseEvent<SVGCircleElement>, pointData: CpuUsageDataPoint, pointX: number, pointY: number) => {
     let tx = pointX + 15; 
     let ty = pointY - tooltipHeight / 2; 
 
@@ -160,7 +159,20 @@ const CpuUsageChart: React.FC<CpuUsageChartProps> = ({ data, isLoading }) => {
           A line chart showing Main CPU % (green), Total CPU % (orange) on the left Y-axis (0-{yCpuMax}%), and DelayMS (purple) on the right Y-axis ({yDelayMsMin}-{yDelayMsMax}ms).
           Time is on the X-axis. A red dashed line indicates the {CPU_WARNING_THRESHOLD_PERCENT}% CPU warning threshold.
         </desc>
-        
+        {/* 啟動時間標示線 */}
+        {startTimestamps && startTimestamps.map((ts, idx) => {
+          const tsSec = timeToSeconds(ts) - firstTimestampSeconds;
+          const x = getX(tsSec);
+          return (
+            <g key={`start-line-${idx}`}> 
+              <line x1={x} y1={padding.top} x2={x} y2={padding.top + chartHeight} stroke="#f59e42" strokeWidth="2.5" strokeDasharray="6,2" />
+              <text x={x + 4} y={padding.top + 18} fontSize="12" fill="#f59e42" fontWeight="bold">
+                啟動
+              </text>
+            </g>
+          );
+        })}
+
         {/* Y CPU Axis Grid Lines and Labels */}
         {yCpuTicks.map((tick, i) => (
           <g key={`y-cpu-tick-${i}`} className="text-gray-500">
