@@ -1,5 +1,6 @@
 
 import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react';
+import type { JSX } from 'react';
 import { SpinnerIcon } from './icons';
 import { 
     LogStatistics, 
