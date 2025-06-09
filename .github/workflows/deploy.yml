@@ -1,0 +1,52 @@
+# 檔案名稱: .github/workflows/deploy.yml
+
+name: Deploy to GitHub Pages
+
+on:
+  # 當推送到 'main' 分支時觸發
+  push:
+    branches:
+      - main
+  # 允許你手動從 Actions 頁面觸發此工作流程
+  workflow_dispatch:
+
+# 設定 GITHUB_TOKEN 的權限，以便部署到 GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22 # 可根據專案需求調整版本
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        # 這裡會執行 npm run build，並使用 vite.config.ts 中的 base 設定
+        run: npm run build
+
+      - name: Upload production-ready build files
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
