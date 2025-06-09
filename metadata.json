@@ -1,0 +1,6 @@
+{
+  "name": "Log Analyzer Pro",
+  "description": "A web application to upload, categorize, and view .log files with Big5 encoding. Logs are parsed by module name and date, and displayed with incremental loading for large files.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
