@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { IndicatorStartEvent } from '../types';
 import { SpinnerIcon } from './icons';
@@ -139,6 +138,30 @@ const isUnreasonableUsage = (event: IndicatorStartEvent, logFileDateStr: string 
   return conditionAMet || conditionBMet || conditionCMet;
 };
 
+// 計算範圍欄位
+const getCalcRange = (event: IndicatorStartEvent, logDate: string | null): string => {
+  const freqNum = parseInt(event.freq || '', 10);
+  // 僅分鐘頻率才計算
+  if (!((freqNum >= 2 && freqNum <= 7) || (freqNum >= 17 && freqNum <= 40))) return "--";
+  // TDayCount
+  if (event.tDayCount && event.tDayCount !== "-2147483648") {
+    return `分鐘近${event.tDayCount}天`;
+  }
+  // FirstBarDate
+  if (event.firstBarDate && event.firstBarDate !== "-2147483648" && logDate && /^\d{8}$/.test(event.firstBarDate) && /^\d{8}$/.test(logDate)) {
+    const fbY = parseInt(event.firstBarDate.slice(0,4),10), fbM = parseInt(event.firstBarDate.slice(4,6),10), fbD = parseInt(event.firstBarDate.slice(6,8),10);
+    const logY = parseInt(logDate.slice(0,4),10), logM = parseInt(logDate.slice(4,6),10), logD = parseInt(logDate.slice(6,8),10);
+    if (fbY && fbM && fbD && logY && logM && logD) {
+      const months = (logY - fbY) * 12 + (logM - fbM) - (logD < fbD ? 1 : 0);
+      if (months >= 0) return `分鐘近${months}個月`;
+    }
+  }
+  // 全為 -2147483648
+  if (event.totalBar === "-2147483648" && event.firstBarDate === "-2147483648" && event.tDayCount === "-2147483648") {
+    return "分鐘全算";
+  }
+  return "--";
+};
 
 const XSIndicatorSvcClientTab: React.FC<XSIndicatorSvcClientTabProps> = ({ indicatorStartEvents, isLoading, logDate }) => {
   const [showOnlyUnreasonableUsage, setShowOnlyUnreasonableUsage] = useState(false);
@@ -209,6 +232,7 @@ const XSIndicatorSvcClientTab: React.FC<XSIndicatorSvcClientTabProps> = ({ indic
                 <th className={thClass}>指標名稱</th>
                 <th className={thClass}>商品</th>
                 <th className={thClass}>頻率</th>
+                <th className={thClass}>計算範圍</th>
                 <th className={thClass}>TotalBar</th>
                 <th className={thClass}>FirstBarDate</th>
                 <th className={thClass}>TDayCount</th>
@@ -235,6 +259,7 @@ const XSIndicatorSvcClientTab: React.FC<XSIndicatorSvcClientTabProps> = ({ indic
                   <td className={tdClass}>{event.name || 'N/A'}</td>
                   <td className={tdClass}>{event.mainSymbolId || 'N/A'}</td>
                   <td className={tdClass}>{getFreqDisplayName(event.freq)}</td>
+                  <td className={tdClass}>{getCalcRange(event, logDate)}</td>
                   <td className={tdClass}>{event.totalBar}</td>
                   <td className={tdClass}>{event.firstBarDate}</td>
                   <td className={tdClass}>{event.tDayCount}</td>
