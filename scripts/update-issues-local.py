@@ -1,5 +1,6 @@
 import json
 import os
+import ssl
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -10,10 +11,18 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 GITLAB_URL = os.environ.get("GITLAB_URL", "https://gitscr1.moneydj.com").rstrip("/")
 TOKEN = os.environ.get("GITLAB_TOKEN")
+CA_FILE = os.environ.get("GITLAB_CA_FILE")
 PROJECTS = {
     "xq": {"ids": ("1551", "1733"), "assignees": ("stevenchiang", "wolfwang", "jamielu")},
     "xqnext": {"ids": ("801", "1938"), "assignees": ("stevenchiang", "chengtseli", "jamielu", "marksun")},
 }
+
+
+def ssl_context():
+    if os.environ.get("GITLAB_INSECURE_SSL") == "1":
+        print("WARNING: TLS certificate verification is disabled for GitLab.", file=sys.stderr)
+        return ssl._create_unverified_context()
+    return ssl.create_default_context(cafile=CA_FILE or None)
 
 
 def fetch_issues(project_id, username):
@@ -21,7 +30,7 @@ def fetch_issues(project_id, username):
     for page in range(1, 100):
         query = urlencode({"state": "opened", "assignee_username[]": username, "per_page": 100, "page": page})
         request = Request(f"{GITLAB_URL}/api/v4/projects/{project_id}/issues?{query}", headers={"PRIVATE-TOKEN": TOKEN})
-        with urlopen(request, timeout=30) as response:
+        with urlopen(request, timeout=30, context=ssl_context()) as response:
             batch = json.load(response)
         issues.extend(batch)
         if len(batch) < 100:
