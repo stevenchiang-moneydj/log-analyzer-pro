@@ -5,7 +5,7 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urlencode
+from urllib.parse import unquote, urlencode, urlsplit
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,12 +38,20 @@ def fetch_issues(project_id, username):
     raise RuntimeError(f"Pagination limit reached for project {project_id}")
 
 
+def get_project_identity(web_url):
+    project_path = urlsplit(web_url).path.split("/-/")[0].strip("/")
+    return project_path, unquote(project_path.rsplit("/", 1)[-1])
+
+
 def build_report(project_ids, assignees):
     unique = {}
     for project_id in project_ids:
         for username in assignees:
             for issue in fetch_issues(project_id, username):
+                project_path, project_name = get_project_identity(issue["web_url"])
                 unique[f"{project_id}:{issue['iid']}"] = {
+                    "projectPath": project_path,
+                    "projectName": project_name,
                     "iid": issue["iid"],
                     "title": issue["title"],
                     "assignees": [user["username"] for user in issue.get("assignees", [])],
