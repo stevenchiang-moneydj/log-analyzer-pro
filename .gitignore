@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 update-issues-weekly.bat
+ISSUE_REPORT_UPDATE.md
+/scripts/update-issues.mjs
+/scripts/update-issues-local.py
