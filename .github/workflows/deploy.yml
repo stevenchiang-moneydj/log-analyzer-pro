@@ -19,6 +19,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,6 +32,12 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Refresh issue reports
+        run: node scripts/update-issues.mjs
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          GITLAB_URL: https://gitscr1.moneydj.com
 
       - name: Build project
         # 這裡會執行 npm run build，並使用 vite.config.ts 中的 base 設定

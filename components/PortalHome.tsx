@@ -1,0 +1,4 @@
+import React from 'react';
+type Props = { onNavigate: (path: string) => void };
+const PortalHome: React.FC<Props> = ({ onNavigate }) => <main className="portal-page"><div className="portal-content"><p className="eyebrow">XQ ENGINEERING HUB</p><h1>工具入口</h1><p className="portal-lead">集中管理 Log 分析與每週更新的 Issue 追蹤報表。</p><div className="portal-grid"><button onClick={() => onNavigate('logs')} className="portal-card"><span>⌁</span><h2>Log 分析工具</h2><p>上傳並分析 DA、XSIndicator 等 Log 檔案。</p></button><button onClick={() => onNavigate('issues/xq')} className="portal-card"><span>XQ</span><h2>XQ Issue 追蹤</h2><p>查看 XQ 專案的開放 Issue。</p></button><button onClick={() => onNavigate('issues/xqnext')} className="portal-card"><span>NX</span><h2>XQNext Issue 追蹤</h2><p>查看 XQNext 專案的開放 Issue。</p></button></div></div></main>;
+export default PortalHome;

@@ -19,6 +19,8 @@ import {
 import FileUploadButton from './components/FileUploadButton';
 import Sidebar from './components/Sidebar';
 import LogViewer from './components/LogViewer';
+import PortalHome from './components/PortalHome';
+import IssueTracker from './components/IssueTracker';
 
 const LINES_PER_CHUNK_DISPLAY = 500; // Number of lines to display per chunk
 const LOG_TIMESTAMP_REGEX = new RegExp("^\\S+\\s+\\d+\\s+(\\d{2}:\\d{2}:\\d{2}\\.\\d{3})"); // Matches HH:MM:SS.mmm
@@ -405,7 +407,7 @@ const parseStartTimestamps = (lines: string[]): string[] => {
     .filter((t): t is string => !!t);
 };
 
-const App: React.FC = () => {
+const LogAnalyzer: React.FC = () => {
   const [categorizedLogs, setCategorizedLogs] = useState<CategorizedLogs>({});
   const [selectedLogKey, setSelectedLogKey] = useState<SelectedLogIdentifier | null>(null);
   
@@ -850,6 +852,15 @@ const App: React.FC = () => {
       </main>
     </div>
   );
+};
+
+const App: React.FC = () => {
+  const [path, setPath] = useState(window.location.hash.replace(/^#\/?/, '') || '');
+  useEffect(() => { const onHashChange = () => setPath(window.location.hash.replace(/^#\/?/, '')); window.addEventListener('hashchange', onHashChange); return () => window.removeEventListener('hashchange', onHashChange); }, []);
+  const navigate = (nextPath: string) => { window.location.hash = `#/${nextPath}`; };
+  if (path === 'logs') return <LogAnalyzer />;
+  if (path === 'issues/xq' || path === 'issues/xqnext') return <IssueTracker project={path.endsWith('xqnext') ? 'xqnext' : 'xq'} onHome={() => navigate('')} />;
+  return <PortalHome onNavigate={navigate} />;
 };
 
 export default App;
